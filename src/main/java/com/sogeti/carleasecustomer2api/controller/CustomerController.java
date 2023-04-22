@@ -1,16 +1,19 @@
 package com.sogeti.carleasecustomer2api.controller;
 
 import com.sogeti.carleasecustomer2api.exception.ResourceNotFoundException;
-import com.sogeti.carleasecustomer2api.http.model.*;
-import com.sogeti.carleasecustomer2api.mapper.AddressMapper;
+import com.sogeti.carleasecustomer2api.http.model.CustomerAddRequest;
+import com.sogeti.carleasecustomer2api.http.model.CustomerFilter;
+import com.sogeti.carleasecustomer2api.http.model.CustomerResponse;
+import com.sogeti.carleasecustomer2api.http.model.CustomerUpdateRequest;
 import com.sogeti.carleasecustomer2api.mapper.CustomerMapper;
-import com.sogeti.carleasecustomer2api.model.Address;
 import com.sogeti.carleasecustomer2api.model.Customer;
 import com.sogeti.carleasecustomer2api.service.CustomerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -22,7 +25,6 @@ public class CustomerController implements CustomerOperations{
 
     private final CustomerService customerService;
     private final CustomerMapper customerMapper;
-    private final AddressMapper addressMapper;
 
     public ResponseEntity<CustomerResponse> _getCustomerByIdV1(@PathVariable Long customerId) {
         try {
@@ -36,8 +38,9 @@ public class CustomerController implements CustomerOperations{
         }
     }
 
-    public ResponseEntity<List<CustomerResponse>> _getAllCustomersV1() {
-        List<Customer> customers = customerService.retrieveAll();
+    @Override
+    public ResponseEntity<List<CustomerResponse>> _getCustomersV1(CustomerFilter filter) {
+        List<Customer> customers = customerService.retrieveCustomers(filter);
         List<CustomerResponse> customerResponses = customers.stream()
                 .map(customerMapper::customerToCustomerResponse)
                 .collect(Collectors.toList());

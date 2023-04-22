@@ -13,7 +13,7 @@ public interface CustomerOperations {
     ResponseEntity<CustomerResponse> _getCustomerByIdV1(@PathVariable Long customerId);
 
     @GetMapping
-    ResponseEntity<List<CustomerResponse>> _getAllCustomersV1();
+    ResponseEntity<List<CustomerResponse>> _getCustomersV1(@RequestBody CustomerFilter filter);
 
     @PostMapping
     ResponseEntity<CustomerResponse> _createCustomerV1(@RequestBody CustomerAddRequest customerAddRequest);

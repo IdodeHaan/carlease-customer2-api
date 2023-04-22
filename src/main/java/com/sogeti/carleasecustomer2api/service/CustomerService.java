@@ -1,6 +1,7 @@
 package com.sogeti.carleasecustomer2api.service;
 
 import com.sogeti.carleasecustomer2api.exception.ResourceNotFoundException;
+import com.sogeti.carleasecustomer2api.http.model.CustomerFilter;
 import com.sogeti.carleasecustomer2api.model.Address;
 import com.sogeti.carleasecustomer2api.model.Customer;
 import com.sogeti.carleasecustomer2api.repository.AddressRepository;
@@ -21,8 +22,12 @@ public class CustomerService {
                 .orElseThrow(ResourceNotFoundException::new);
     }
 
-    public List<Customer> retrieveAll() {
-        return customerRepository.findAll();
+    public List<Customer> retrieveCustomers(CustomerFilter filter) {
+        if (filter.getEmail() != null) {
+            return customerRepository.findByEmail(filter.getEmail());
+        } else {
+            return customerRepository.findAll();
+        }
     }
 
     public Customer add(Customer customer) {
