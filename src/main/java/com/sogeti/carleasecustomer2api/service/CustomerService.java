@@ -15,7 +15,6 @@ import java.util.List;
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
-    private final AddressRepository addressRepository;
 
     public Customer retrieve(Long id) throws ResourceNotFoundException {
         return customerRepository.findById(id)

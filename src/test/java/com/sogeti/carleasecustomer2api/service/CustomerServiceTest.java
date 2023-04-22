@@ -4,6 +4,8 @@ import com.sogeti.carleasecustomer2api.exception.ResourceNotFoundException;
 import com.sogeti.carleasecustomer2api.model.Address;
 import com.sogeti.carleasecustomer2api.model.AddressType;
 import com.sogeti.carleasecustomer2api.model.Customer;
+import com.sogeti.carleasecustomer2api.repository.AddressRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -20,10 +23,13 @@ class CustomerServiceTest {
 
     @Autowired
     CustomerService customerService;
+
+    @Autowired
+    AddressRepository addressRepository;
+    private Customer addedCustomer;
     private String name = "John Doe";
     private String email = "john@example.com";
     private String phoneNumber = "+31612345678";
-    private Customer addedCustomer;
     private AddressType type = AddressType.WORK;
     private String street = "Some Street";
     private String houseNumber = "55b";
@@ -31,12 +37,11 @@ class CustomerServiceTest {
     private String place = "Some Place";
     private Address address;
     @BeforeEach
-    void setup() throws ResourceNotFoundException {
+    void setup() {
         Customer customer = new Customer();
         customer.setName(name);
         customer.setEmail(email);
         customer.setPhoneNumber(phoneNumber);
-        addedCustomer = customerService.add(customer);
 
         address = new Address();
         address.setType(type);
@@ -44,6 +49,18 @@ class CustomerServiceTest {
         address.setHouseNumber(houseNumber);
         address.setZipCode(zipCode);
         address.setPlace(place);
+        customer.addAddress(address);
+
+        addedCustomer = customerService.add(customer);
+    }
+
+    @AfterEach
+    void cleanup() {
+        try {
+            customerService.delete(addedCustomer.getId());
+        } catch (ResourceNotFoundException ignored) {
+
+        }
     }
 
     @Test
@@ -54,16 +71,31 @@ class CustomerServiceTest {
         assertEquals(name, addedCustomer.getName());
         assertEquals(email, addedCustomer.getEmail());
         assertEquals(phoneNumber, addedCustomer.getPhoneNumber());
+        Address createdAddress = addedCustomer.getAddresses().get(0);
+        assertTrue(createdAddress.getId() > 0);
+        assertEquals(type, createdAddress.getType());
+        assertEquals(street, createdAddress.getStreet());
+        assertEquals(houseNumber, createdAddress.getHouseNumber());
+        assertEquals(zipCode, createdAddress.getZipCode());
+        assertEquals(place, createdAddress.getPlace());
     }
 
     @Test
     @DisplayName("retrieve customer by id")
+    @Transactional
     void testRetrieve_whenCustomerWithGivenIdExists_CustomerMustBeReturned() throws ResourceNotFoundException {
         //when
         Customer foundCustomer = customerService.retrieve(addedCustomer.getId());
         assertEquals(name, foundCustomer.getName());
         assertEquals(email, foundCustomer.getEmail());
         assertEquals(phoneNumber, foundCustomer.getPhoneNumber());
+        Address foundAddress = foundCustomer.getAddresses().get(0);
+        assertTrue(foundAddress.getId() > 0);
+        assertEquals(type, foundAddress.getType());
+        assertEquals(street, foundAddress.getStreet());
+        assertEquals(houseNumber, foundAddress.getHouseNumber());
+        assertEquals(zipCode, foundAddress.getZipCode());
+        assertEquals(place, foundAddress.getPlace());
     }
 
     @Test
@@ -102,12 +134,30 @@ class CustomerServiceTest {
         addedCustomer.setName(newName);
         addedCustomer.setEmail(newEmail);
         addedCustomer.setPhoneNumber(newPhoneNumber);
+        Address addedAddress = addedCustomer.getAddresses().get(0);
+        AddressType type1 = AddressType.CORRESPONDENCE;
+        String street1 = "Another Street";
+        String houseNumber1 = "999x";
+        String zipCode1 = "9999ZZ";
+        String place1 = "Another Place";
+        addedAddress.setType(type1);
+        addedAddress.setStreet(street1);
+        addedAddress.setHouseNumber(houseNumber1);
+        addedAddress.setZipCode(zipCode1);
+        addedAddress.setPlace(place1);
         //when
         Customer updatedCustomer = customerService.update(addedCustomer.getId(), addedCustomer);
         //then
         assertEquals(newName, updatedCustomer.getName());
         assertEquals(newEmail, updatedCustomer.getEmail());
         assertEquals(newPhoneNumber, updatedCustomer.getPhoneNumber());
+        Address updatedAddress = updatedCustomer.getAddresses().get(0);
+        assertEquals(addedAddress.getId(), updatedAddress.getId());
+        assertEquals(type1, updatedAddress.getType());
+        assertEquals(street1, updatedAddress.getStreet());
+        assertEquals(houseNumber1, updatedAddress.getHouseNumber());
+        assertEquals(zipCode1, updatedAddress.getZipCode());
+        assertEquals(place1, updatedAddress.getPlace());
     }
 
     @Test
@@ -121,14 +171,17 @@ class CustomerServiceTest {
     }
 
     @Test
-    @DisplayName("delete customer")
+    @DisplayName("delete customer with its addresses")
     void testDelete_whenGivenCustomerExists_CustomerIsDeleted() throws ResourceNotFoundException {
         //when
         long customerId = addedCustomer.getId();
+        long addressId = addedCustomer.getAddresses().get(0).getId();
         customerService.delete(customerId);
         //then
         assertThrows(ResourceNotFoundException.class, () -> customerService.retrieve(customerId)
                 , "Retrieve a deleted customer should throw ResourceNotFoundException");
+        assertThrows(NoSuchElementException.class, () -> addressRepository.findById(addressId).get()
+        ,"Retrieve an address of a deleted customer should throw an Exception");
     }
 
     @Test
@@ -139,117 +192,5 @@ class CustomerServiceTest {
         //when & then
         assertThrows(ResourceNotFoundException.class, () -> customerService.delete(idOfNonExistingCustomer)
                 , "Delete with non-existing id should throw ResourceNotFoundException");
-    }
-
-    @Test
-    @DisplayName("add address")
-    @Transactional
-    void testAddAddress_whenCorrectDetailsAreGiven_returnedAddressHadId() throws ResourceNotFoundException {
-        //when
-        addedCustomer = customerService.addAddress(addedCustomer.getId(), address);
-        Address createdAddress = addedCustomer.getAddresses().get(0);
-        //then
-        assertTrue(createdAddress.getId() > 0);
-        assertEquals(type, createdAddress.getType());
-        assertEquals(street, createdAddress.getStreet());
-        assertEquals(houseNumber, createdAddress.getHouseNumber());
-        assertEquals(zipCode, createdAddress.getZipCode());
-        assertEquals(place, createdAddress.getPlace());
-    }
-
-    @Test
-    @DisplayName("add address to non-existing customer")
-    void testAddAddress_whenCustomerDoesNotExist_throwsResourceNotFoundException() {
-        //given
-        Long idOfNonExistingCustomer = addedCustomer.getId() + 1;
-        //when and then
-        assertThrows(ResourceNotFoundException.class, () -> customerService.addAddress(idOfNonExistingCustomer, address)
-        , "adding address to non-existing customer should throw ResourceNotFoundException");
-    }
-
-    @Test
-    @DisplayName("update address")
-    @Transactional
-    void testUpdateAddress_whenAddressDetailsAreUpdated_detailsAreCorrectlyStored() throws ResourceNotFoundException {
-        //given
-        addedCustomer = customerService.addAddress(addedCustomer.getId(), address);
-        Address createdAddress = addedCustomer.getAddresses().get(0);
-        AddressType type1 = AddressType.CORRESPONDENCE;
-        String street1 = "Another Street";
-        String houseNumber1 = "999x";
-        String zipCode1 = "9999ZZ";
-        String place1 = "Another Place";
-        createdAddress.setType(type1);
-        createdAddress.setStreet(street1);
-        createdAddress.setHouseNumber(houseNumber1);
-        createdAddress.setZipCode(zipCode1);
-        createdAddress.setPlace(place1);
-        //when
-        Customer customer = customerService.updateAddress(addedCustomer.getId(), createdAddress.getId(), createdAddress);
-        Address updatedAddress = customer.getAddresses().get(0);
-        //then
-        assertEquals(createdAddress.getId(), updatedAddress.getId());
-        assertEquals(type1, updatedAddress.getType());
-        assertEquals(street1, updatedAddress.getStreet());
-        assertEquals(houseNumber1, updatedAddress.getHouseNumber());
-        assertEquals(zipCode1, updatedAddress.getZipCode());
-        assertEquals(place1, updatedAddress.getPlace());
-    }
-
-    @Test
-    @DisplayName("update address of non-existing customer")
-    @Transactional
-    void testUpdateAddress__whenCustomerDoesNotExist_throwsResourceNotFoundException() throws ResourceNotFoundException {
-        //given
-        addedCustomer = customerService.addAddress(addedCustomer.getId(), address);
-        Address createdAddress = addedCustomer.getAddresses().get(0);
-        Long idOfNonExistingCustomer = addedCustomer.getId() + 1;
-        //when & then
-        assertThrows(ResourceNotFoundException.class,
-                () -> customerService.updateAddress(idOfNonExistingCustomer, createdAddress.getId(), address)
-        , "updating address of non-existing customer should throw ResourceNotFoundException");
-    }
-
-    @Test
-    @DisplayName("update non-existing address")
-    @Transactional
-    void testUpdateAddress__whenAddressDoesNotExist_throwsResourceNotFoundException() throws ResourceNotFoundException {
-        //given
-        addedCustomer = customerService.addAddress(addedCustomer.getId(), address);
-        Address createdAddress = addedCustomer.getAddresses().get(0);
-        Long idOfNonExistingAddress = createdAddress.getId() + 1;
-        //when & then
-        assertThrows(ResourceNotFoundException.class,
-                () -> customerService.updateAddress(addedCustomer.getId(), idOfNonExistingAddress, address)
-                , "updating an address a non-existing address should throw ResourceNotFoundException");
-    }
-
-    @Test
-    @DisplayName("add address")
-    @Transactional
-    void testDeleteAddress_whenAddressIsDeleted_deletingItAgainThrowsException() throws ResourceNotFoundException {
-        //given
-        addedCustomer = customerService.addAddress(addedCustomer.getId(), address);
-        Address createdAddress = addedCustomer.getAddresses().get(0);
-        Long idOfDeletedAddress = createdAddress.getId();
-        //when
-        customerService.deleteAddress(addedCustomer.getId(), idOfDeletedAddress);
-        //then
-        assertThrows(ResourceNotFoundException.class, () -> customerService.deleteAddress(addedCustomer.getId(), idOfDeletedAddress)
-        , "deleting an address that already is deleted should throw ResourceNotFoundException");
-    }
-
-    @Test
-    @DisplayName("delete address of non-existing customer")
-    @Transactional
-    void testDeleteAddress__whenCustomerDoesNotExist_throwsResourceNotFoundException() throws ResourceNotFoundException {
-        //given
-        addedCustomer = customerService.addAddress(addedCustomer.getId(), address);
-        Address createdAddress = addedCustomer.getAddresses().get(0);
-        Long idOfNonExistingCustomer = addedCustomer.getId() + 1;
-        //when & then
-        assertThrows(ResourceNotFoundException.class,
-                () -> customerService.deleteAddress(idOfNonExistingCustomer, createdAddress.getId())
-                , "deleting address of non-existing customer should throw ResourceNotFoundException");
     }
 }
