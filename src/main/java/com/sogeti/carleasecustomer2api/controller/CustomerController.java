@@ -77,47 +77,4 @@ public class CustomerController implements CustomerOperations{
             return ResponseEntity.badRequest().build();
         }
     }
-
-    public ResponseEntity<CustomerResponse> _addAddressV1(@PathVariable Long customerId, @RequestBody AddressAddRequest addressAddRequest) {
-        try {
-            Address address = addressMapper.AddressAddRequestToAddress(addressAddRequest);
-            Customer updatedCustomer = customerService.addAddress(customerId, address);
-            CustomerResponse customerResponse = customerMapper.customerToCustomerResponse(updatedCustomer);
-            return ResponseEntity.ok(customerResponse);
-        } catch (ResourceNotFoundException exception) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, "Customer with id " + customerId + " not found", exception);
-        } catch (Exception exception) {
-            return ResponseEntity.badRequest().build();
-        }
-    }
-
-    public ResponseEntity<CustomerResponse> _updateAddressV1(
-            @PathVariable Long customerId, @PathVariable Long addressId, @RequestBody AddressUpdateRequest addressUpdateRequest) {
-        try {
-            Address address = addressMapper.AddressUpdateRequestToAddress(addressUpdateRequest);
-            Customer customer = customerService.updateAddress(customerId, addressId, address);
-            CustomerResponse customerResponse = customerMapper.customerToCustomerResponse(customer);
-            return ResponseEntity.ok(customerResponse);
-        } catch (ResourceNotFoundException exception) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, "customer or address not found", exception);
-        } catch (Exception exception) {
-            return ResponseEntity.badRequest().build();
-        }
-    }
-
-    public ResponseEntity _deleteAddressV1(
-            @PathVariable Long customerId, @PathVariable Long addressId) {
-        try {
-            Customer customer = customerService.deleteAddress(customerId, addressId);
-            CustomerResponse customerResponse = customerMapper.customerToCustomerResponse(customer);
-            return ResponseEntity.ok(customerResponse);
-        } catch (ResourceNotFoundException exception) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, "customer or address not found", exception);
-        } catch (Exception exception) {
-            return ResponseEntity.badRequest().build();
-        }
-    }
 }

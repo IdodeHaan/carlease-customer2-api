@@ -23,14 +23,4 @@ public interface CustomerOperations {
 
     @DeleteMapping("/{customerId}")
     ResponseEntity _deleteCustomerV1(@PathVariable Long customerId);
-
-    @PostMapping("/{customerId}/addresses")
-    ResponseEntity<CustomerResponse> _addAddressV1(@PathVariable Long customerId, @RequestBody AddressAddRequest addressAddRequest);
-
-    @PutMapping("/{customerId}/addresses/{addressId}")
-    ResponseEntity<CustomerResponse> _updateAddressV1(
-            @PathVariable Long customerId, @PathVariable Long addressId, @RequestBody AddressUpdateRequest addressUpdateRequest);
-
-    @DeleteMapping("/{customerId}/addresses/{addressId}")
-    ResponseEntity _deleteAddressV1(@PathVariable Long customerId, @PathVariable Long addressId);
 }

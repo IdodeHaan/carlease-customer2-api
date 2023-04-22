@@ -41,25 +41,4 @@ public class CustomerService {
         retrieve(id);
         customerRepository.deleteById(id);
     }
-
-    public Customer addAddress(Long customerId, Address address) throws ResourceNotFoundException {
-        Customer _customer = retrieve(customerId);
-        _customer.addAddress(address);
-        return customerRepository.save(_customer);
-    }
-
-    public Customer updateAddress(Long customerId, Long addressId, Address address) throws ResourceNotFoundException {
-        Customer customer = retrieve(customerId);
-        addressRepository.findById(addressId).orElseThrow(ResourceNotFoundException::new);
-        address.setId(addressId);
-        addressRepository.save(address);
-        return retrieve(customerId);
-    }
-
-    public Customer deleteAddress(Long customerId, Long addressId) throws ResourceNotFoundException {
-        Customer customer = retrieve(customerId);
-        addressRepository.findById(addressId).orElseThrow(ResourceNotFoundException::new);
-        addressRepository.deleteById(addressId);
-        return retrieve(customerId);
-    }
 }
