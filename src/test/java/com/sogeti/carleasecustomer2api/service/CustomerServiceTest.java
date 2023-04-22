@@ -1,6 +1,7 @@
 package com.sogeti.carleasecustomer2api.service;
 
 import com.sogeti.carleasecustomer2api.exception.ResourceNotFoundException;
+import com.sogeti.carleasecustomer2api.http.model.CustomerFilter;
 import com.sogeti.carleasecustomer2api.model.Address;
 import com.sogeti.carleasecustomer2api.model.AddressType;
 import com.sogeti.carleasecustomer2api.model.Customer;
@@ -112,16 +113,38 @@ class CustomerServiceTest {
     @DisplayName("retrieve all customers")
     void testRetrieveAll_whenACustomerIsStored_OneMoreCustomerIsReturned() {
         //given
-        int numberOfStoredCustomers = customerService.retrieveAll().size();
+        CustomerFilter filter = new CustomerFilter();
+        filter.setEmail(null);
+        int numberOfStoredCustomers = customerService.retrieveCustomers(filter).size();
         Customer customer = new Customer();
         customer.setName("Joan");
         customer.setEmail("joan@example.com");
         customer.setPhoneNumber("+33688776655");
         customerService.add(customer);
         //when
-        List<Customer> customers = customerService.retrieveAll();
+        List<Customer> customers = customerService.retrieveCustomers(filter);
         //then
         assertEquals(numberOfStoredCustomers + 1, customers.size());
+    }
+
+    @Test
+    @DisplayName("filter customers on email")
+    void testRetrieveAll_whenFilteredOnEmail_onlyCustomersWithGivenEmailAreReturned() {
+        //given
+        CustomerFilter filter = new CustomerFilter();
+        String email1 = "joan@example.com";
+        filter.setEmail(email1);
+        Customer customer = new Customer();
+        customer.setName("Joan");
+        customer.setEmail(email1);
+        customer.setPhoneNumber("+33688776655");
+        customerService.add(customer);
+        //when
+        List<Customer> customers = customerService.retrieveCustomers(filter);
+        //then
+        for (Customer c : customers) {
+            assertEquals(email1, c.getEmail());
+        }
     }
 
     @Test
