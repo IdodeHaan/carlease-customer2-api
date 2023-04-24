@@ -1,11 +1,11 @@
 package com.sogeti.carleasecustomer2api.service;
 
 import com.sogeti.carleasecustomer2api.exception.ResourceNotFoundException;
-import com.sogeti.carleasecustomer2api.http.model.CustomerFilter;
 import com.sogeti.carleasecustomer2api.model.Address;
 import com.sogeti.carleasecustomer2api.model.AddressType;
 import com.sogeti.carleasecustomer2api.model.Customer;
 import com.sogeti.carleasecustomer2api.repository.AddressRepository;
+import com.sogeti.carleasecustomercontractapi.openapi.model.CustomerFilter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -111,6 +111,7 @@ class CustomerServiceTest {
 
     @Test
     @DisplayName("retrieve all customers")
+    @Transactional
     void testRetrieveAll_whenACustomerIsStored_OneMoreCustomerIsReturned() {
         //given
         CustomerFilter filter = new CustomerFilter();
@@ -129,6 +130,7 @@ class CustomerServiceTest {
 
     @Test
     @DisplayName("filter customers on email")
+    @Transactional
     void testRetrieveAll_whenFilteredOnEmail_onlyCustomersWithGivenEmailAreReturned() {
         //given
         CustomerFilter filter = new CustomerFilter();
