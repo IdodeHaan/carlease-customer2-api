@@ -1,12 +1,14 @@
 package com.sogeti.carleasecustomer2api.mapper;
 
-import com.sogeti.carleasecustomer2api.http.model.CustomerAddRequest;
-import com.sogeti.carleasecustomer2api.http.model.CustomerResponse;
-import com.sogeti.carleasecustomer2api.http.model.CustomerUpdateRequest;
 import com.sogeti.carleasecustomer2api.model.Customer;
+import com.sogeti.carleasecustomercontractapi.openapi.model.CustomerAddRequest;
+import com.sogeti.carleasecustomercontractapi.openapi.model.CustomerResponse;
+import com.sogeti.carleasecustomercontractapi.openapi.model.CustomerUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
+
+import javax.validation.Valid;
 
 @Component
 @RequiredArgsConstructor
@@ -18,7 +20,7 @@ public class CustomerMapper {
         return modelMapper.map(customer, CustomerResponse.class);
     }
 
-    public Customer customerAddRequestToCustomer(CustomerAddRequest customerAddRequest) {
+    public Customer customerAddRequestToCustomer(@Valid CustomerAddRequest customerAddRequest) {
         return modelMapper.map(customerAddRequest, Customer.class);
     }
 

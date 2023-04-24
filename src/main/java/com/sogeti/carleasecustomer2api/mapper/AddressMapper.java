@@ -1,8 +1,8 @@
 package com.sogeti.carleasecustomer2api.mapper;
 
-import com.sogeti.carleasecustomer2api.http.model.*;
 import com.sogeti.carleasecustomer2api.model.Address;
-import com.sogeti.carleasecustomer2api.model.Customer;
+import com.sogeti.carleasecustomercontractapi.openapi.model.AddressAddRequest;
+import com.sogeti.carleasecustomercontractapi.openapi.model.AddressUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
