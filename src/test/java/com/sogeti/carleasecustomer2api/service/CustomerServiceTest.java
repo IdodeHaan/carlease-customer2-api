@@ -13,11 +13,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.List;
 import java.util.NoSuchElementException;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 class CustomerServiceTest {
@@ -27,29 +26,22 @@ class CustomerServiceTest {
 
     @Autowired
     AddressRepository addressRepository;
+    private Customer customer;
     private Customer addedCustomer;
-    private String name = "John Doe";
-    private String email = "john@example.com";
-    private String phoneNumber = "+31612345678";
-    private AddressType type = AddressType.WORK;
-    private String street = "Some Street";
-    private String houseNumber = "55b";
-    private String zipCode = "4455 ZZ";
-    private String place = "Some Place";
-    private Address address;
+
     @BeforeEach
     void setup() {
-        Customer customer = new Customer();
-        customer.setName(name);
-        customer.setEmail(email);
-        customer.setPhoneNumber(phoneNumber);
+        customer = new Customer();
+        customer.setName("John Doe");
+        customer.setEmail("john@example.com");
+        customer.setPhoneNumber("+31612345678");
 
-        address = new Address();
-        address.setType(type);
-        address.setStreet(street);
-        address.setHouseNumber(houseNumber);
-        address.setZipCode(zipCode);
-        address.setPlace(place);
+        Address address = new Address();
+        address.setType(AddressType.WORK);
+        address.setStreet("Some Street");
+        address.setHouseNumber("55b");
+        address.setZipCode("4455 ZZ");
+        address.setPlace("Some Place");
         customer.addAddress(address);
 
         addedCustomer = customerService.add(customer);
@@ -66,19 +58,15 @@ class CustomerServiceTest {
 
     @Test
     @DisplayName("add customer")
-    void testAddCustomer_whenCorrectCustomerIsGiven_returnedCustomerHasId() {
+    void testAddCustomer_whenCorrectCustomerIsGiven_returnedCustomerHasSameDetails() {
+        //when
+        customer.setId(addedCustomer.getId());
+        customer.getAddresses().get(0).setId(addedCustomer.getAddresses().get(0).getId());
         //then
-        assertTrue(addedCustomer.getId() > 0);
-        assertEquals(name, addedCustomer.getName());
-        assertEquals(email, addedCustomer.getEmail());
-        assertEquals(phoneNumber, addedCustomer.getPhoneNumber());
-        Address createdAddress = addedCustomer.getAddresses().get(0);
-        assertTrue(createdAddress.getId() > 0);
-        assertEquals(type, createdAddress.getType());
-        assertEquals(street, createdAddress.getStreet());
-        assertEquals(houseNumber, createdAddress.getHouseNumber());
-        assertEquals(zipCode, createdAddress.getZipCode());
-        assertEquals(place, createdAddress.getPlace());
+        assertThat(customer)
+                .as("all details of the inserted customer must be equal to the original details, except the id's")
+                .usingRecursiveComparison()
+                .isEqualTo(addedCustomer);
     }
 
     @Test
@@ -87,16 +75,10 @@ class CustomerServiceTest {
     void testRetrieve_whenCustomerWithGivenIdExists_CustomerMustBeReturned() throws ResourceNotFoundException {
         //when
         Customer foundCustomer = customerService.retrieve(addedCustomer.getId());
-        assertEquals(name, foundCustomer.getName());
-        assertEquals(email, foundCustomer.getEmail());
-        assertEquals(phoneNumber, foundCustomer.getPhoneNumber());
-        Address foundAddress = foundCustomer.getAddresses().get(0);
-        assertTrue(foundAddress.getId() > 0);
-        assertEquals(type, foundAddress.getType());
-        assertEquals(street, foundAddress.getStreet());
-        assertEquals(houseNumber, foundAddress.getHouseNumber());
-        assertEquals(zipCode, foundAddress.getZipCode());
-        assertEquals(place, foundAddress.getPlace());
+        //then
+        assertThat(addedCustomer)
+                .usingRecursiveComparison()
+                .isEqualTo(foundCustomer);
     }
 
     @Test
@@ -105,8 +87,9 @@ class CustomerServiceTest {
         //given
         Long idOfNonExistingCustomer = addedCustomer.getId() + 1;
         //when & then
-        assertThrows(ResourceNotFoundException.class, () -> customerService.retrieve(idOfNonExistingCustomer)
-                , "Retrieve with non-existing id should throw ResourceNotFoundException");
+        assertThatThrownBy(() -> customerService.retrieve(idOfNonExistingCustomer))
+                .as("Retrieve with non-existing id should throw ResourceNotFoundException")
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
@@ -125,7 +108,8 @@ class CustomerServiceTest {
         //when
         List<Customer> customers = customerService.retrieveCustomers(filter);
         //then
-        assertEquals(numberOfStoredCustomers + 1, customers.size());
+        assertThat(customers.size())
+                .isEqualTo(numberOfStoredCustomers + 1);
     }
 
     @Test
@@ -145,7 +129,7 @@ class CustomerServiceTest {
         List<Customer> customers = customerService.retrieveCustomers(filter);
         //then
         for (Customer c : customers) {
-            assertEquals(email1, c.getEmail());
+            assertThat(c.getEmail()).isEqualTo(email1);
         }
     }
 
@@ -153,36 +137,21 @@ class CustomerServiceTest {
     @DisplayName("update customer details")
     void testUpdate_whenCustomerDetailsAreUpdated_UpdateDetailsAreStored() throws ResourceNotFoundException {
         //given
-        String newName = "New name";
-        String newEmail = "newname@example.com";
-        String newPhoneNumber = "new phoneNumber";
-        addedCustomer.setName(newName);
-        addedCustomer.setEmail(newEmail);
-        addedCustomer.setPhoneNumber(newPhoneNumber);
+        addedCustomer.setName("New name");
+        addedCustomer.setEmail("newname@example.com");
+        addedCustomer.setPhoneNumber("new phoneNumber");
         Address addedAddress = addedCustomer.getAddresses().get(0);
-        AddressType type1 = AddressType.CORRESPONDENCE;
-        String street1 = "Another Street";
-        String houseNumber1 = "999x";
-        String zipCode1 = "9999ZZ";
-        String place1 = "Another Place";
-        addedAddress.setType(type1);
-        addedAddress.setStreet(street1);
-        addedAddress.setHouseNumber(houseNumber1);
-        addedAddress.setZipCode(zipCode1);
-        addedAddress.setPlace(place1);
+        addedAddress.setType(AddressType.CORRESPONDENCE);
+        addedAddress.setStreet("Another Street");
+        addedAddress.setHouseNumber("999x");
+        addedAddress.setZipCode("9999ZZ");
+        addedAddress.setPlace("Another Place");
         //when
         Customer updatedCustomer = customerService.update(addedCustomer.getId(), addedCustomer);
         //then
-        assertEquals(newName, updatedCustomer.getName());
-        assertEquals(newEmail, updatedCustomer.getEmail());
-        assertEquals(newPhoneNumber, updatedCustomer.getPhoneNumber());
-        Address updatedAddress = updatedCustomer.getAddresses().get(0);
-        assertEquals(addedAddress.getId(), updatedAddress.getId());
-        assertEquals(type1, updatedAddress.getType());
-        assertEquals(street1, updatedAddress.getStreet());
-        assertEquals(houseNumber1, updatedAddress.getHouseNumber());
-        assertEquals(zipCode1, updatedAddress.getZipCode());
-        assertEquals(place1, updatedAddress.getPlace());
+        assertThat(updatedCustomer)
+                .usingRecursiveComparison()
+                .isEqualTo(addedCustomer);
     }
 
     @Test
@@ -191,22 +160,25 @@ class CustomerServiceTest {
         //given
         Long idOfNonExistingCustomer = addedCustomer.getId() + 1;
         //when & then
-        assertThrows(ResourceNotFoundException.class, () -> customerService.update(idOfNonExistingCustomer, addedCustomer)
-                , "Update with non-existing id should throw ResourceNotFoundException");
+        assertThatThrownBy(() -> customerService.update(idOfNonExistingCustomer, addedCustomer))
+                .as("Update with non-existing id should throw ResourceNotFoundException")
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
     @DisplayName("delete customer with its addresses")
-    void testDelete_whenGivenCustomerExists_CustomerIsDeleted() throws ResourceNotFoundException {
+    void testDelete_whenGivenCustomerExists_CustomerAndAddressesAreDeleted() throws ResourceNotFoundException {
         //when
         long customerId = addedCustomer.getId();
         long addressId = addedCustomer.getAddresses().get(0).getId();
         customerService.delete(customerId);
         //then
-        assertThrows(ResourceNotFoundException.class, () -> customerService.retrieve(customerId)
-                , "Retrieve a deleted customer should throw ResourceNotFoundException");
-        assertThrows(NoSuchElementException.class, () -> addressRepository.findById(addressId).get()
-        ,"Retrieve an address of a deleted customer should throw an Exception");
+        assertThatThrownBy(() -> customerService.retrieve(customerId))
+                .as("Retrieve a deleted customer should throw ResourceNotFoundException")
+                .isInstanceOf(ResourceNotFoundException.class);
+        assertThatThrownBy(() -> addressRepository.findById(addressId).get())
+                .as("Retrieve an address of a deleted customer should throw an Exception")
+                .isInstanceOf(NoSuchElementException.class);
     }
 
     @Test
@@ -215,7 +187,8 @@ class CustomerServiceTest {
         //given
         Long idOfNonExistingCustomer = addedCustomer.getId() + 1;
         //when & then
-        assertThrows(ResourceNotFoundException.class, () -> customerService.delete(idOfNonExistingCustomer)
-                , "Delete with non-existing id should throw ResourceNotFoundException");
+        assertThatThrownBy(() -> customerService.delete(idOfNonExistingCustomer))
+                .as("Delete with non-existing id should throw ResourceNotFoundException")
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 }
