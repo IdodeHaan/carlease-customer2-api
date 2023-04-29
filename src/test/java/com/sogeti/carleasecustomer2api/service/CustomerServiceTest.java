@@ -1,6 +1,6 @@
 package com.sogeti.carleasecustomer2api.service;
 
-import com.sogeti.carleasecustomer2api.exception.ResourceNotFoundException;
+import com.sogeti.carleasecustomer2api.exceptionhandling.ResourceNotFoundException;
 import com.sogeti.carleasecustomer2api.model.Address;
 import com.sogeti.carleasecustomer2api.model.AddressType;
 import com.sogeti.carleasecustomer2api.model.Customer;

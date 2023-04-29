@@ -1,13 +1,13 @@
 package com.sogeti.carleasecustomer2api.service;
 
-import com.sogeti.carleasecustomer2api.exception.ResourceNotFoundException;
+import com.sogeti.carleasecustomer2api.exceptionhandling.ResourceNotFoundException;
 import com.sogeti.carleasecustomer2api.model.Customer;
 import com.sogeti.carleasecustomer2api.repository.CustomerRepository;
 import com.sogeti.carleasecustomercontractapi.openapi.model.CustomerFilter;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import javax.validation.Valid;
 import java.util.List;
 
 @Service
@@ -29,12 +29,12 @@ public class CustomerService {
         }
     }
 
-    public Customer add(Customer customer) {
+    public Customer add(@Valid Customer customer) {
         customer.setId(0L);
         return customerRepository.save(customer);
     }
 
-    public Customer update(Long id, Customer customer) throws ResourceNotFoundException {
+    public Customer update(Long id, @Valid Customer customer) throws ResourceNotFoundException {
         retrieve(id);
         customer.setId(id);
         return customerRepository.save(customer);
