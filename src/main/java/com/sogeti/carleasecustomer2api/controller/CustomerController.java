@@ -29,7 +29,7 @@ public class CustomerController implements V1Api {
 
 
     @Override
-    public ResponseEntity<CustomerResponse> createCustomerV1(CustomerAddRequest customerAddRequest) {
+    public ResponseEntity<CustomerResponse> createCustomerV1(@Valid CustomerAddRequest customerAddRequest) {
         try {
             Customer customer = customerMapper.customerAddRequestToCustomer(customerAddRequest);
             Customer createdCustomer = customerService.add(customer);
@@ -69,7 +69,7 @@ public class CustomerController implements V1Api {
     }
 
     @Override
-    public ResponseEntity<List<CustomerResponse>> getCustomersV1(CustomerFilter customerFilter) {
+    public ResponseEntity<List<CustomerResponse>> getCustomersV1(@Valid CustomerFilter customerFilter) {
         List<Customer> customers = customerService.retrieveCustomers(customerFilter);
         List<CustomerResponse> customerResponses = customers.stream()
                 .map(customerMapper::customerToCustomerResponse)

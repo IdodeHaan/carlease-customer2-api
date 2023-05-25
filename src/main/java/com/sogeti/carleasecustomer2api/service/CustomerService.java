@@ -21,7 +21,7 @@ public class CustomerService {
                 .orElseThrow(ResourceNotFoundException::new);
     }
 
-    public List<Customer> retrieveCustomers(@Valid CustomerFilter filter) {
+    public List<Customer> retrieveCustomers(CustomerFilter filter) {
         if (filter.getEmail() != null) {
             return customerRepository.findByEmail(filter.getEmail());
         } else {
@@ -29,12 +29,12 @@ public class CustomerService {
         }
     }
 
-    public Customer add(@Valid Customer customer) {
+    public Customer add(Customer customer) {
         customer.setId(0L);
         return customerRepository.save(customer);
     }
 
-    public Customer update(Long id, @Valid Customer customer) throws ResourceNotFoundException {
+    public Customer update(Long id, Customer customer) throws ResourceNotFoundException {
         retrieve(id);
         customer.setId(id);
         return customerRepository.save(customer);
