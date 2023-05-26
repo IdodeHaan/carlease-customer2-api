@@ -6,6 +6,9 @@ import com.sogeti.carleasecustomer2api.repository.CustomerRepository;
 import com.sogeti.carleasecustomercontractapi.openapi.model.CustomerFilter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,11 +24,12 @@ public class CustomerService {
                 .orElseThrow(ResourceNotFoundException::new);
     }
 
-    public List<Customer> retrieveCustomers(CustomerFilter filter) {
+    public Page<Customer> retrieveCustomers(CustomerFilter filter) {
+        Pageable pageRequest = PageRequest.of(filter.getPage(), filter.getSize());
         if (filter.getEmail() != null) {
-            return customerRepository.findByEmail(filter.getEmail());
+            return customerRepository.findByEmail(filter.getEmail(), pageRequest);
         } else {
-            return customerRepository.findAll();
+            return customerRepository.findAll(pageRequest);
         }
     }
 

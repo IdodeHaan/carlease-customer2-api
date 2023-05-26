@@ -7,18 +7,14 @@ import com.sogeti.carleasecustomer2api.mapper.CustomerMapper;
 import com.sogeti.carleasecustomer2api.model.Customer;
 import com.sogeti.carleasecustomer2api.service.CustomerService;
 import com.sogeti.carleasecustomercontractapi.openapi.api.V1Api;
-import com.sogeti.carleasecustomercontractapi.openapi.model.CustomerAddRequest;
-import com.sogeti.carleasecustomercontractapi.openapi.model.CustomerFilter;
-import com.sogeti.carleasecustomercontractapi.openapi.model.CustomerResponse;
-import com.sogeti.carleasecustomercontractapi.openapi.model.CustomerUpdateRequest;
+import com.sogeti.carleasecustomercontractapi.openapi.model.*;
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -69,15 +65,13 @@ public class CustomerController implements V1Api {
     }
 
     @Override
-    public ResponseEntity<List<CustomerResponse>> getCustomersV1(@Valid CustomerFilter customerFilter) {
-        List<Customer> customers = customerService.retrieveCustomers(customerFilter);
-        List<CustomerResponse> customerResponses = customers.stream()
-                .map(customerMapper::customerToCustomerResponse)
-                .collect(Collectors.toList());
-        if (customerResponses.isEmpty()) {
+    public ResponseEntity<CustomerResponsePage> getCustomersV1(@Valid CustomerFilter customerFilter) {
+        Page<Customer> customers = customerService.retrieveCustomers(customerFilter);
+        if (customers.getContent().isEmpty()) {
             throw new ResourceNotFoundException("No customers found");
         }
-        return ResponseEntity.ok(customerResponses);
+        CustomerResponsePage responsePage = customerMapper.pageCustomerToCustomerResponsePage(customers);
+        return ResponseEntity.ok(responsePage);
     }
 
     @Override
