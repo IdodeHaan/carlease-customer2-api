@@ -95,6 +95,7 @@ class CustomerServiceTest {
     @Test
     @DisplayName("retrieve all customers")
     @Transactional
+    //Todo fix unit tests
     void testRetrieveAll_whenACustomerIsStored_OneMoreCustomerIsReturned() {
         //given
         CustomerFilter filter = new CustomerFilter();
